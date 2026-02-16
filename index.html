@@ -9,6 +9,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfc; }
         .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
@@ -44,30 +45,82 @@
                 img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
             });
 
+            // --- FUNCIONES ---
+            // const handleLogin = (e) => {
+            //    e.preventDefault();
+            //    if (loginUser === "nataly" && loginPass === "nataly") {
+            //        setIsLoggedIn(true);
+            //        setShowLoginModal(false);
+            //        setLoginUser(""); setLoginPass("");
+            //    } else {
+            //        alert("Credenciales incorrectas");
+            //    }
+            //};
+
+            // 2. LOGIN SEGURO (Nadie en GitHub verá esto)
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: loginUser, // Aquí el usuario pondrá nataly@estetica.com
+                    password: loginPass,
+                });
+
+                if (error) {
+                    alert("Error: " + error.message);
+                } else {
+                    setIsLoggedIn(true);
+                    setShowLoginModal(false);
+                }
+            };
+
+            // const agregarTrabajo = (e) => {
+            //    e.preventDefault();
+            //    setTrabajos([{ ...nuevoTrabajo, id: Date.now() }, ...trabajos]);
+            //    setNuevoTrabajo({ titulo: '', categoria: '', img: '', descripcion: '' });
+            //    setShowModal(false);
+            //};
+
+            // 3. AGREGAR TRABAJO A LA NUBE
+            const agregarTrabajo = async (e) => {
+                e.preventDefault();
+                // Enviamos a la nube
+                const { data, error } = await supabaseClient
+                    .from('trabajos')
+                    .insert([nuevoTrabajo]); // nuevoTrabajo tiene titulo, img, etc.
+
+                if (!error) {
+                    // Actualizar la lista local
+                    setTrabajos([nuevoTrabajo, ...trabajos]);
+                    // Aquí podrías recargar la lista o limpiar el formulario
+                    setShowModal(false);
+                    window.location.reload(); // Forma rápida de ver el cambio
+                } else {
+                    console.error("Error al subir:", error.message);
+                    alert("No se pudo subir el trabajo");
+                }
+            };
+
+            // REEMPLAZA ESTO con tus credenciales de Supabase (Settings > API)
+            const supabaseUrl = 'https://dxqqswnzouldmygqnivz.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cXFzd256b3VsZG15Z3FuaXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTQ2NzMsImV4cCI6MjA4Njc3MDY3M30.yu6zMqqhdOeMLFuZgFUM3WjH5_nYuuQYIkzeLOG3L8M';
+            const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+            const [loading, setLoading] = useState(true);
+
             // --- EFECTOS ---
             useEffect(() => {
                 localStorage.setItem('mis_trabajos', JSON.stringify(trabajos));
                 localStorage.setItem('admin_profile', JSON.stringify(profile));
+                const fetchTrabajos = async () => {
+                const { data, error } = await supabaseClient
+                        .from('trabajos')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    if (data) setTrabajos(data);
+                    setLoading(false);
+                };
+                fetchTrabajos();
             }, [trabajos, profile]);
-
-            // --- FUNCIONES ---
-            const handleLogin = (e) => {
-                e.preventDefault();
-                if (loginUser === "nataly" && loginPass === "nataly") {
-                    setIsLoggedIn(true);
-                    setShowLoginModal(false);
-                    setLoginUser(""); setLoginPass("");
-                } else {
-                    alert("Credenciales incorrectas");
-                }
-            };
-
-            const agregarTrabajo = (e) => {
-                e.preventDefault();
-                setTrabajos([{ ...nuevoTrabajo, id: Date.now() }, ...trabajos]);
-                setNuevoTrabajo({ titulo: '', categoria: '', img: '', descripcion: '' });
-                setShowModal(false);
-            };
 
             return (
                 <div className="min-h-screen relative">
