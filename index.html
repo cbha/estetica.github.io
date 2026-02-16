@@ -222,18 +222,27 @@
                                     </div>
 
                                     <form 
-                                        onSubmit={(e) => {
-                                            e.preventDefault(); // Evita que la página se recargue
-                                            if (loginUser === "nataly" && loginPass === "nataly") {
+                                        onSubmit={async (e) => {
+                                            e.preventDefault();
+                                            
+                                            // --- CONEXIÓN AVANZADA CON SUPABASE ---
+                                            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                                                email: loginUser, // Aquí pondrás nataly@estetica.com (o el que creaste)
+                                                password: loginPass,
+                                            });
+
+                                            if (error) {
+                                                // Si la contraseña está mal o el usuario no existe, Supabase nos avisa
+                                                alert("Error de autenticación: " + error.message);
+                                            } else {
+                                                // Si todo está bien, Supabase nos da el acceso
                                                 setIsLoggedIn(true);
                                                 setShowLoginModal(false);
-                                                // Opcional: limpiar los campos después de entrar
                                                 setLoginUser("");
                                                 setLoginPass("");
-                                            } else {
-                                                alert("Credenciales de administrador incorrectas");
+                                                console.log("Sesión iniciada con éxito para:", data.user.email);
                                             }
-                                        }} 
+                                        }}
                                         className="space-y-6"
                                     >
                                         <div>
