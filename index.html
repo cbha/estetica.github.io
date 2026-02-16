@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Estética - Portafolio Profesional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfc; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
+        .gradient-text { background: linear-gradient(to right, #ec4899, #f97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .side-panel { transform: translateX(100%); transition: transform 0.4s ease; }
+        .side-panel.open { transform: translateX(0); }
+        .bg-aesthetic { background-image: url('https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=2070'); background-size: cover; background-position: center; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function PortfolioApp() {
+            // --- ESTADOS ---
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [showLoginModal, setShowLoginModal] = useState(false);
+            const [isBookingOpen, setIsBookingOpen] = useState(false);
+            const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+            const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+            const [showModal, setShowModal] = useState(false); // Modal subir trabajo
+
+            const [loginUser, setLoginUser] = useState("");
+            const [loginPass, setLoginPass] = useState("");
+
+            const [trabajos, setTrabajos] = useState(JSON.parse(localStorage.getItem('mis_trabajos')) || []);
+            const [nuevoTrabajo, setNuevoTrabajo] = useState({ titulo: '', categoria: '', img: '', descripcion: '' });
+            
+            const [profile, setProfile] = useState(JSON.parse(localStorage.getItem('admin_profile')) || {
+                nombre: "Nataly",
+                img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"
+            });
+
+            // --- EFECTOS ---
+            useEffect(() => {
+                localStorage.setItem('mis_trabajos', JSON.stringify(trabajos));
+                localStorage.setItem('admin_profile', JSON.stringify(profile));
+            }, [trabajos, profile]);
+
+            // --- FUNCIONES ---
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (loginUser === "nataly" && loginPass === "nataly") {
+                    setIsLoggedIn(true);
+                    setShowLoginModal(false);
+                    setLoginUser(""); setLoginPass("");
+                } else {
+                    alert("Credenciales incorrectas");
+                }
+            };
+
+            const agregarTrabajo = (e) => {
+                e.preventDefault();
+                setTrabajos([{ ...nuevoTrabajo, id: Date.now() }, ...trabajos]);
+                setNuevoTrabajo({ titulo: '', categoria: '', img: '', descripcion: '' });
+                setShowModal(false);
+            };
+
+            return (
+                <div className="min-h-screen relative">
+                    {/* 1. HEADER DINÁMICO */}
+                    <header className="p-8 md:px-20 flex justify-between items-center sticky top-0 z-40 glass-card border-b border-pink-50">
+                        <h1 className="text-2xl font-black tracking-tighter italic gradient-text uppercase">Aura Estética</h1>
+                        
+                        <div className="flex items-center gap-6">
+                            {!isLoggedIn ? (
+                                <button onClick={() => setShowLoginModal(true)} className="text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-pink-500 transition-colors">
+                                    Iniciar Sesión
+                                </button>
+                            ) : (
+                                <div className="relative flex items-center gap-4">
+                                    <div className="text-right hidden md:block">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase leading-none">Bienvenida,</p>
+                                        <p className="text-sm font-bold text-slate-800 leading-none">{profile.nombre}</p>
+                                    </div>
+                                    <img 
+                                        src={profile.img} 
+                                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                        className="w-10 h-10 rounded-full border-2 border-pink-200 cursor-pointer hover:border-pink-500 transition-all object-cover" 
+                                    />
+                                    {isUserMenuOpen && (
+                                        <div className="absolute right-0 top-full mt-4 w-48 bg-white rounded-3xl shadow-2xl border border-slate-50 p-3 z-50 animate-in slide-in-from-top-2">
+                                            <button onClick={() => { setShowModal(true); setIsUserMenuOpen(false); }} className="w-full text-left p-3 hover:bg-pink-50 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">✨ Subir Trabajo</button>
+                                            <button onClick={() => { setIsEditProfileOpen(true); setIsUserMenuOpen(false); }} className="w-full text-left p-3 hover:bg-pink-50 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">👤 Editar Perfil</button>
+                                            <hr className="my-2 border-slate-50" />
+                                            <button onClick={() => { setIsLoggedIn(false); setIsUserMenuOpen(false); }} className="w-full text-left p-3 hover:bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors">🚪 Cerrar Sesión</button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </header>
+
+                    {/* 2. CONTENIDO PRINCIPAL (Portafolio) */}
+                    <main className={`transition-all duration-500 ${isBookingOpen || showLoginModal ? 'blur-sm opacity-50' : ''}`}>
+                        <section className="py-20 px-8 text-center max-w-4xl mx-auto">
+                            <h2 className="text-5xl md:text-7xl font-extrabold tracking-tighter text-slate-900 mb-6 leading-tight">
+                                Resultados <span className="italic font-light text-pink-500">Reales</span>
+                            </h2>
+                            <p className="text-slate-500 font-medium mb-12">Muestra el arte de realzar la belleza natural.</p>
+                            
+                            {/* BOTÓN AGENDA (Tu solicitud de estar más abajo) */}
+                            <button 
+                                onClick={() => setIsBookingOpen(true)}
+                                className="bg-pink-500 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-black transition-all shadow-2xl"
+                            >
+                                📅 Agenda tu hora ahora!
+                            </button>
+                        </section>
+
+                        <div className="px-8 md:px-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 pb-20">
+                            {trabajos.map(t => (
+                                <div key={t.id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm border border-slate-100 relative">
+                                    {isLoggedIn && (
+                                        <button onClick={() => setTrabajos(trabajos.filter(x => x.id !== t.id))} className="absolute top-4 right-4 z-10 bg-white/80 w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all">✕</button>
+                                    )}
+                                    <img src={t.img} className="h-64 w-full object-cover group-hover:scale-105 transition duration-500" />
+                                    <div className="p-8">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-pink-500">{t.categoria}</span>
+                                        <h3 className="text-xl font-bold mt-2">{t.titulo}</h3>
+                                        <p className="text-sm text-slate-500 mt-2 italic">"{t.descripcion}"</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+
+                    {/* 3. MODAL LOGIN (nataly/nataly) */}
+                    {showLoginModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-0 bg-black/40 backdrop-blur-sm">
+                            <div className="flex flex-col md:flex-row w-full max-w-5xl h-[auto] md:h-[650px] rounded-[3rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-500 bg-white">
+                                
+                                {/* Lado Izquierdo - Visual */}
+                                <div className="hidden md:flex md:w-1/2 bg-pink-100 items-center justify-center p-12 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-pink-200/50 to-transparent"></div>
+                                    <div className="relative z-10 text-center">
+                                        <h2 className="text-6xl font-serif italic text-pink-900 mb-6 drop-shadow-sm">Aura Nataly</h2>
+                                        <p className="text-pink-800/60 uppercase tracking-[0.4em] text-[10px] font-bold">Professional Studio</p>
+                                        <div className="mt-20 w-32 h-[1px] bg-pink-300 mx-auto"></div>
+                                    </div>
+                                </div>
+
+                                {/* Lado Derecho - Formulario Glass */}
+                                <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-16 relative bg-white/80">
+                                    {/* Botón para cerrar el modal si te arrepientes */}
+                                    <button 
+                                        onClick={() => setShowLoginModal(false)}
+                                        className="absolute top-8 right-8 text-slate-400 hover:text-pink-500 font-bold"
+                                    >
+                                        ESC
+                                    </button>
+
+                                    <div className="mb-10 text-center md:text-left">
+                                        <h3 className="text-3xl font-black tracking-tighter text-slate-800 mb-2">Bienvenido de nuevo</h3>
+                                        <p className="text-slate-500 text-sm">Ingresa tus credenciales para gestionar tu portafolio.</p>
+                                    </div>
+
+                                    <form 
+                                        onSubmit={(e) => {
+                                            e.preventDefault(); // Evita que la página se recargue
+                                            if (loginUser === "nataly" && loginPass === "nataly") {
+                                                setIsLoggedIn(true);
+                                                setShowLoginModal(false);
+                                                // Opcional: limpiar los campos después de entrar
+                                                setLoginUser("");
+                                                setLoginPass("");
+                                            } else {
+                                                alert("Credenciales de administrador incorrectas");
+                                            }
+                                        }} 
+                                        className="space-y-6"
+                                    >
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Usuario o Email</label>
+                                            <input 
+                                                type="text" 
+                                                required
+                                                value={loginUser}
+                                                onChange={(e) => setLoginUser(e.target.value)}
+                                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-pink-200 transition-all text-sm"
+                                                placeholder="nataly"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Contraseña</label>
+                                            <input 
+                                                type="password" 
+                                                value={loginPass}
+                                                required
+                                                onChange={(e) => setLoginPass(e.target.value)}
+                                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-pink-200 transition-all text-sm"
+                                                placeholder="••••••••"
+                                            />
+                                        </div>
+                                        <button 
+                                            type="submit"
+                                            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-pink-600 transition-all shadow-xl active:scale-95"
+                                        >
+                                            Iniciar Sesión
+                                        </button>
+                                    </form>
+                                    
+                                    <p className="mt-8 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                        ¿Olvidaste tu contraseña? <span className="text-pink-500 cursor-pointer">Contactar Soporte</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 4. MODAL EDITAR PERFIL */}
+                    {isEditProfileOpen && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/20 backdrop-blur-md">
+                            <div className="bg-white w-full max-w-md rounded-[3rem] p-12 shadow-2xl">
+                                <h3 className="text-3xl font-black italic mb-8">Editar Perfil</h3>
+                                <div className="space-y-4">
+                                    <input type="text" value={profile.nombre} onChange={(e)=>setProfile({...profile, nombre: e.target.value})} placeholder="Nombre" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" />
+                                    <input type="text" value={profile.img} onChange={(e)=>setProfile({...profile, img: e.target.value})} placeholder="URL de Foto" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" />
+                                </div>
+                                <button onClick={()=>setIsEditProfileOpen(false)} className="w-full bg-pink-500 text-white py-4 rounded-2xl font-black uppercase mt-6">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 5. SIDE PANEL AGENDAMIENTO */}
+                    {isBookingOpen && (
+                        <div className="fixed inset-0 z-[100] flex justify-end">
+                            {/* Overlay para cerrar al hacer clic fuera */}
+                            <div className="absolute inset-0 blur-bg" onClick={() => setIsBookingOpen(false)}></div>
+                            
+                            {/* Panel Lateral */}
+                            <div className={`relative w-full max-w-md bg-white h-full shadow-2xl p-10 flex flex-col side-panel open overflow-y-auto`}>
+                                <button 
+                                    onClick={() => setIsBookingOpen(false)}
+                                    className="absolute top-8 right-8 text-slate-400 hover:text-black font-black"
+                                >
+                                    CERRAR
+                                </button>
+
+                                <div className="mt-10">
+                                    <h3 className="text-3xl font-black italic tracking-tighter mb-2">Reserva tu cita</h3>
+                                    <p className="text-slate-500 text-sm mb-8 font-medium">Cuentanos qué necesitas y nos pondremos en contacto contigo.</p>
+
+                                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert('Cita enviada!'); setIsBookingOpen(false); }}>
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-pink-500 ml-1">Nombre Completo</label>
+                                            <input required type="text" className="w-full p-4 bg-slate-50 rounded-2xl outline-none focus:ring-2 ring-pink-100 transition" placeholder="Tu nombre y apellido" />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-pink-500 ml-1">WhatsApp de contacto</label>
+                                            <input required type="tel" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" placeholder="+56 9 ..." />
+                                        </div>
+
+                                        <div>
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-pink-500 ml-1">Descripción del caso</label>
+                                            <textarea required className="w-full p-4 bg-slate-50 rounded-2xl outline-none h-28 resize-none" placeholder="¿Qué te gustaría tratar? (Pelo, rostro, etc.)"></textarea>
+                                        </div>
+
+                                        {/* CAMPO DE IMAGEN OPCIONAL */}
+                                        <div className="p-6 border-2 border-dashed border-slate-100 rounded-[2rem] bg-pink-50/30">
+                                            <label className="block text-center cursor-pointer">
+                                                <span className="text-xl mb-2 block">📸</span>
+                                                <span className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Sube una foto de referencia (Opcional)</span>
+                                                <input type="file" className="hidden" accept="image/*" />
+                                            </label>
+                                        </div>
+
+                                        <button 
+                                            type="submit"
+                                            className="w-full bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase text-xs tracking-[0.2em] hover:bg-pink-500 transition-all shadow-xl mt-4"
+                                        >
+                                            Confirmar Solicitud
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 6. MODAL SUBIR TRABAJO (Solo visible para Admin) */}
+                    {showModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/20 backdrop-blur-md">
+                            <div className="bg-white w-full max-w-md rounded-[3rem] p-12 shadow-2xl">
+                                <h3 className="text-3xl font-black italic mb-8">Nuevo Trabajo</h3>
+                                <form onSubmit={agregarTrabajo} className="space-y-4">
+                                    <input required placeholder="Título" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" onChange={(e)=>setNuevoTrabajo({...nuevoTrabajo, titulo: e.target.value})} />
+                                    <input required placeholder="Categoría" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" onChange={(e)=>setNuevoTrabajo({...nuevoTrabajo, categoria: e.target.value})} />
+                                    <input required placeholder="URL Imagen" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" onChange={(e)=>setNuevoTrabajo({...nuevoTrabajo, img: e.target.value})} />
+                                    <textarea placeholder="Descripción" className="w-full p-4 bg-slate-50 rounded-2xl outline-none" onChange={(e)=>setNuevoTrabajo({...nuevoTrabajo, descripcion: e.target.value})}></textarea>
+                                    <button type="submit" className="w-full bg-pink-500 text-white py-4 rounded-2xl font-black uppercase">Publicar</button>
+                                    <button type="button" onClick={()=>setShowModal(false)} className="w-full text-slate-400 font-bold uppercase py-2">Cancelar</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PortfolioApp />);
+    </script>
+</body>
+</html>
