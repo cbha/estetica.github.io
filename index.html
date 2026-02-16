@@ -23,6 +23,13 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        const { createClient } = supabase; // Extraemos la función de la librería
+
+        // REEMPLAZA ESTO con tus credenciales de Supabase (Settings > API)
+        const supabaseUrl = 'https://dxqqswnzouldmygqnivz.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cXFzd256b3VsZG15Z3FuaXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTQ2NzMsImV4cCI6MjA4Njc3MDY3M30.yu6zMqqhdOeMLFuZgFUM3WjH5_nYuuQYIkzeLOG3L8M';
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
         const { useState, useEffect } = React;
 
         function PortfolioApp() {
@@ -99,11 +106,6 @@
                     alert("No se pudo subir el trabajo");
                 }
             };
-
-            // REEMPLAZA ESTO con tus credenciales de Supabase (Settings > API)
-            const supabaseUrl = 'https://dxqqswnzouldmygqnivz.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4cXFzd256b3VsZG15Z3FuaXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTQ2NzMsImV4cCI6MjA4Njc3MDY3M30.yu6zMqqhdOeMLFuZgFUM3WjH5_nYuuQYIkzeLOG3L8M';
-            const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
             const [loading, setLoading] = useState(true);
 
@@ -191,92 +193,67 @@
                         </div>
                     </main>
 
-                    {/* 3. MODAL LOGIN (nataly/nataly) */}
+                    {/* 3. MODAL LOGIN */}
                     {showLoginModal && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-0 bg-black/40 backdrop-blur-sm">
-                            <div className="flex flex-col md:flex-row w-full max-w-5xl h-[auto] md:h-[650px] rounded-[3rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-500 bg-white">
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                            <div className="flex flex-col md:flex-row w-full max-w-5xl h-[auto] md:h-[650px] rounded-[3rem] overflow-hidden shadow-2xl bg-white">
                                 
-                                {/* Lado Izquierdo - Visual */}
+                                {/* Lado Izquierdo */}
                                 <div className="hidden md:flex md:w-1/2 bg-pink-100 items-center justify-center p-12 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-pink-200/50 to-transparent"></div>
                                     <div className="relative z-10 text-center">
-                                        <h2 className="text-6xl font-serif italic text-pink-900 mb-6 drop-shadow-sm">Aura Nataly</h2>
+                                        <h2 className="text-6xl font-serif italic text-pink-900 mb-6">Aura Nataly</h2>
                                         <p className="text-pink-800/60 uppercase tracking-[0.4em] text-[10px] font-bold">Professional Studio</p>
-                                        <div className="mt-20 w-32 h-[1px] bg-pink-300 mx-auto"></div>
                                     </div>
                                 </div>
 
-                                {/* Lado Derecho - Formulario Glass */}
+                                {/* Lado Derecho */}
                                 <div className="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-16 relative bg-white/80">
-                                    {/* Botón para cerrar el modal si te arrepientes */}
-                                    <button 
-                                        onClick={() => setShowLoginModal(false)}
-                                        className="absolute top-8 right-8 text-slate-400 hover:text-pink-500 font-bold"
-                                    >
-                                        ESC
-                                    </button>
-
-                                    <div className="mb-10 text-center md:text-left">
-                                        <h3 className="text-3xl font-black tracking-tighter text-slate-800 mb-2">Bienvenido de nuevo</h3>
-                                        <p className="text-slate-500 text-sm">Ingresa tus credenciales para gestionar tu portafolio.</p>
-                                    </div>
+                                    <button onClick={() => setShowLoginModal(false)} className="absolute top-8 right-8 text-slate-400 font-bold">ESC</button>
+                                    
+                                    <h3 className="text-3xl font-black mb-2">Bienvenido</h3>
+                                    <p className="text-slate-500 text-sm mb-10">Usa tu email de Supabase para entrar.</p>
 
                                     <form 
                                         onSubmit={async (e) => {
                                             e.preventDefault();
                                             try {
+                                                // Llamada a la base de datos
                                                 const { data, error } = await supabaseClient.auth.signInWithPassword({
-                                                    email: loginUser, // IMPORTANTE: Debe ser un email
+                                                    email: loginUser, // Asegúrate de que loginUser sea el email (ej: nataly@test.com)
                                                     password: loginPass,
                                                 });
 
                                                 if (error) throw error;
 
-                                                // Éxito
                                                 setIsLoggedIn(true);
                                                 setShowLoginModal(false);
-                                                setLoginUser("");
-                                                setLoginPass("");
-                                                alert("¡Bienvenida, Nataly!");
-                                            } catch (error) {
-                                                alert("Error: " + error.message);
+                                                alert("¡Acceso concedido!");
+                                            } catch (err) {
+                                                alert("Error: " + err.message);
                                             }
-                                        }}
+                                        }} 
                                         className="space-y-6"
                                     >
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Usuario o Email</label>
-                                            <input 
-                                                type="text" 
-                                                required
-                                                value={loginUser}
-                                                onChange={(e) => setLoginUser(e.target.value)}
-                                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-pink-200 transition-all text-sm"
-                                                placeholder="nataly"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Contraseña</label>
-                                            <input 
-                                                type="password" 
-                                                value={loginPass}
-                                                required
-                                                onChange={(e) => setLoginPass(e.target.value)}
-                                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-pink-200 transition-all text-sm"
-                                                placeholder="••••••••"
-                                            />
-                                        </div>
-                                        <button 
-                                            type="submit"
-                                            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-pink-600 transition-all shadow-xl active:scale-95"
-                                        >
+                                        <input 
+                                            type="email" 
+                                            placeholder="Email de Admin"
+                                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-pink-200"
+                                            value={loginUser}
+                                            onChange={(e) => setLoginUser(e.target.value)}
+                                            required
+                                        />
+                                        <input 
+                                            type="password" 
+                                            placeholder="Contraseña"
+                                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 ring-pink-200"
+                                            value={loginPass}
+                                            onChange={(e) => setLoginPass(e.target.value)}
+                                            required
+                                        />
+                                        <button type="submit" className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-pink-600 transition-all">
                                             Iniciar Sesión
                                         </button>
                                     </form>
-                                    
-                                    <p className="mt-8 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                        ¿Olvidaste tu contraseña? <span className="text-pink-500 cursor-pointer">Contactar Soporte</span>
-                                    </p>
                                 </div>
                             </div>
                         </div>
