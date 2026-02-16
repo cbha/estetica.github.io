@@ -114,12 +114,18 @@
                 localStorage.setItem('mis_trabajos', JSON.stringify(trabajos));
                 localStorage.setItem('admin_profile', JSON.stringify(profile));
                 const fetchTrabajos = async () => {
-                const { data, error } = await supabaseClient
-                        .from('trabajos')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-                    if (data) setTrabajos(data);
-                    setLoading(false);
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('trabajos')
+                            .select('*')
+                            .order('created_at', { ascending: false });
+                        
+                        if (data) setTrabajos(data);
+                    } catch (err) {
+                        console.error("Error cargando datos:", err);
+                    } finally {
+                        setLoading(false);
+                    }
                 };
                 fetchTrabajos();
             }, [trabajos, profile]);
