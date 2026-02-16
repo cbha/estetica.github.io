@@ -224,23 +224,22 @@
                                     <form 
                                         onSubmit={async (e) => {
                                             e.preventDefault();
-                                            
-                                            // --- CONEXIÓN AVANZADA CON SUPABASE ---
-                                            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                                                email: loginUser, // Aquí pondrás nataly@estetica.com (o el que creaste)
-                                                password: loginPass,
-                                            });
+                                            try {
+                                                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                                                    email: loginUser, // IMPORTANTE: Debe ser un email
+                                                    password: loginPass,
+                                                });
 
-                                            if (error) {
-                                                // Si la contraseña está mal o el usuario no existe, Supabase nos avisa
-                                                alert("Error de autenticación: " + error.message);
-                                            } else {
-                                                // Si todo está bien, Supabase nos da el acceso
+                                                if (error) throw error;
+
+                                                // Éxito
                                                 setIsLoggedIn(true);
                                                 setShowLoginModal(false);
                                                 setLoginUser("");
                                                 setLoginPass("");
-                                                console.log("Sesión iniciada con éxito para:", data.user.email);
+                                                alert("¡Bienvenida, Nataly!");
+                                            } catch (error) {
+                                                alert("Error: " + error.message);
                                             }
                                         }}
                                         className="space-y-6"
